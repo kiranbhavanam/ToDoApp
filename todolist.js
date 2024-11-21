@@ -1,34 +1,88 @@
-//create a list taskList that stores the task and date (for the sake of localstorage)
-let taskList = JSON.parse(localStorage.getItem("taskDetails")) || [
-  { task: "", inputDate: "" },
-];
+const { error } = require("console");
 
+//create a list taskList that stores the task and date (for the sake of localstorage)
+// let taskList = JSON.parse(localStorage.getItem("taskDetails")) || [
+//   { task: "", inputDate: "" },
+// ];
+let taskList;
+function fetchTasks(){
+  fetch("https://localhost:3000/todos")
+    .then((response)=>response.json())
+    .then((data)=>{
+      taskList=data;
+      renderList();
+    }).catch((error)=>console.error("error fetchning tasks: ",error));
+}
 document.querySelector(".submit").addEventListener("click", () => {
   let inputTaskEle = document.querySelector(".input-task");
   let inputDateEle = document.querySelector(".input-date");
   addToList(inputTaskEle.value, inputDateEle.value);
 });
 
+// function markAsComplete() {
+//   document.querySelectorAll(".js-done").forEach((doneEle) => {
+//     doneEle.addEventListener("click", () => {
+//       doneEle.classList.add("completed");
+//       doneEle.innerHTML = "completed";
+//     });
+//   });
+// }
 function markAsComplete() {
-  document.querySelectorAll(".js-done").forEach((doneEle) => {
+  document.querySelectorAll(".js-done").forEach((doneEle, index) => {
     doneEle.addEventListener("click", () => {
-      doneEle.classList.add("completed");
-      doneEle.innerHTML = "completed";
+      const taskId = taskList[index].id; // Use the task ID from the backend
+      fetch(`http://localhost:3000/todos/${taskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          }
+          throw new Error("Failed to mark task as complete");
+        })
+        .then((updatedTask) => {
+          taskList[index] = updatedTask; // Update the task in the local list
+          renderList();
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     });
   });
 }
 
-function addToList(task, inputDate) {
+function addToList(task, date) {
   if (task && inputDate) {
-    taskList.push({ task, inputDate });
-    localStorage.setItem("taskDetails", JSON.stringify(taskList));
-    document.querySelector(".input-task").value = "";
+    // taskList.push({ task, date }); to connect with backend when updating your array, post the request 
+    fetch("https://localhost:3000/todos",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+      },
+      body:JSON.stringify({task,date})
+    }).then((response)=>{
+        if(response.ok){
+          return response.json();
+        }
+        throw new Error("Failed to add task");
+    }).then((newTask)=>{
+      taskList.push(newTask);
+      renderList();
+      document.querySelector(".input-task").value = "";
     document.querySelector(".input-date").value = "";
-    //console.log(taskList);
-    renderList();
-    document.querySelector(".js-new-task").classList.add("task-info");
+    }).catch((error)=>{
+      console.error(error);
+    })
+    // localStorage.setItem("taskDetails", JSON.stringify(taskList));
+    
+    // //console.log(taskList);
+    // renderList();
+    // document.querySelector(".js-new-task").classList.add("task-info");
   } else {
-    error = `<div class='error'>Please fill all the task details</div>`;
+    const error = `<div class='error'>Please fill all the task details</div>`;
     document.querySelector(".js-new-task").classList.remove("task-info");
     document.querySelector(".js-new-task").innerHTML = error;
   }
@@ -59,3 +113,7 @@ function deleteTask() {
     });
   });
 }
+
+document.addEventListener("DOMContentLoaded",()=>{
+  fetchTasks();
+});
