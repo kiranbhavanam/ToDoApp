@@ -1,17 +1,16 @@
-const { error } = require("console");
-
 //create a list taskList that stores the task and date (for the sake of localstorage)
 // let taskList = JSON.parse(localStorage.getItem("taskDetails")) || [
 //   { task: "", inputDate: "" },
 // ];
-let taskList;
-function fetchTasks(){
-  fetch("https://localhost:3000/todos")
-    .then((response)=>response.json())
-    .then((data)=>{
-      taskList=data;
+let taskList=[];
+function fetchTasks() {
+  fetch("http://localhost:3000/todos")
+    .then((response) => response.json())
+    .then((data) => {
+      taskList = data;
       renderList();
-    }).catch((error)=>console.error("error fetchning tasks: ",error));
+    })
+    .catch((error) => console.error("error fetchning tasks: ", error));
 }
 document.querySelector(".submit").addEventListener("click", () => {
   let inputTaskEle = document.querySelector(".input-task");
@@ -55,29 +54,33 @@ function markAsComplete() {
 }
 
 function addToList(task, date) {
-  if (task && inputDate) {
-    // taskList.push({ task, date }); to connect with backend when updating your array, post the request 
-    fetch("https://localhost:3000/todos",{
-      method:"POST",
-      headers:{
-        "Content-Type":"application/json",
+  if (task && date) {
+    // taskList.push({ task, date }); to connect with backend when updating your array, post the request
+    fetch("http://localhost:3000/todos", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-      body:JSON.stringify({task,date})
-    }).then((response)=>{
-        if(response.ok){
-          return response.json();
+      body: JSON.stringify({ task, date }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          // return response.json();
+          renderList();
         }
         throw new Error("Failed to add task");
-    }).then((newTask)=>{
-      taskList.push(newTask);
-      renderList();
-      document.querySelector(".input-task").value = "";
-    document.querySelector(".input-date").value = "";
-    }).catch((error)=>{
-      console.error(error);
-    })
+      })
+      // .then((newTask) => {
+      //   // taskList.push(newTask);
+      //   renderList();
+      //   document.querySelector(".input-task").value = "";
+      //   document.querySelector(".input-date").value = "";
+      // })
+      .catch((error) => {
+        console.error(error);
+      });
     // localStorage.setItem("taskDetails", JSON.stringify(taskList));
-    
+
     // //console.log(taskList);
     // renderList();
     // document.querySelector(".js-new-task").classList.add("task-info");
@@ -114,6 +117,6 @@ function deleteTask() {
   });
 }
 
-document.addEventListener("DOMContentLoaded",()=>{
+document.addEventListener("DOMContentLoaded", () => {
   fetchTasks();
 });
