@@ -23,16 +23,16 @@ app.post("/todos",(req,res)=>{
     todos.push(newTodo);
     return res.status(201).send(newTodo)
 })
-app.put("todos/:id",(req,res)=>{
-
+app.put("/todos/:id",(req,res)=>{
+    // console.log("put request recieved for:"+req.params.id)
     const target=todos.find(todo=>todo.id===parseInt(req.params.id))
     if(!target)
         return res.status(400).send("No such task")
     target.completed=true;
     return res.status(200).json(target)
 })
-app.delete("todos/:id",(req,res)=>{
-    const targetIndex=todos.findIndex(todo=>todo.id===parseInt(req.body.id))
+app.delete("/todos/:id",(req,res)=>{
+    const targetIndex=todos.findIndex(todo=>todo.id===parseInt(req.params.id))
     if(targetIndex===-1)
         return res.status(400)
     todos.splice(targetIndex,1)

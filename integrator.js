@@ -31,13 +31,48 @@ async function addTask(task, date) {
   }
 }
 
+async function completeTask(index) {
+  try {
+    // console.log("index: " + index);
+    const taskId = taskList[index].id;
+    // console.log("taskId: " + taskId);
+    const res = await fetch(`http://localhost:3000/todos/${taskId}`, {
+      method: "PUT",
+    });
+    if(res.ok){
+      await fetchTasks();
+    }
+    // console.log("fetched tasks successfully.")
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function deleteTask(index) {
+  const taskId=taskList[index].id;
+  console.log("Deleting task at index:"+index+" and taskID: "+taskId)
+  try {
+    const res=await fetch(`http://localhost:3000/todos/${taskId}`,{
+      method:"DELETE"
+    })
+    if(res.ok)
+       fetchTasks()
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 function renderTasks() {
   let html = "";
-  taskList.forEach((value) => {
+  taskList.forEach((value, index) => {
+    console.log("Value of task " +index +JSON.stringify(value));
     html += `<div class="task">${value.task}</div>
     <div class="task-date"> ${value.date}</div>
-   <div><button class="mark-as-done js-done">Mark as Done</button></div>
-   <div><button class="delete js-delete">Delete</button></div>`;
+  <div><button class="mark-as-done js-done" onclick="completeTask(${index})">${
+      value.completed ? "completed" : "Mark"
+    }</button></div>
+   <div><button class="delete" js-delete onclick="deleteTask(${index})">Delete</button></div>`;
   });
   document.querySelector(".js-new-task").innerHTML = html;
 }
