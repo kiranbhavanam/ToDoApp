@@ -1,9 +1,15 @@
 const express = require("express");
 // const bodyParser=require("body-parser")
 const app = express();
+const zod=require("zod")
 // app.use(bodyParser.json())
 const cors = require("cors");
 app.use(cors());
+const schema=zod.object(
+  {task:zod.string(),
+    date:zod.string()
+  }
+)
 
 const todos = [];
 let id = 1;
@@ -24,6 +30,10 @@ app.post("/todos", (req, res) => {
   const { task, date } = req.body;
   if (!task || !date)
     return res.status(400).send("Task and date are required!");
+  const schemaValidatio=schema.safeParse({task,date})
+  if(!schemaValidatio.success){
+    return res.status(500).send("Input validation failed.")
+  }
   const newTodo = {
     id: id++,
     completed: false,
